@@ -1,11 +1,123 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>My Game Hub</title>
-</head>
-<body>
-  <h1>🎮 My Game Hub</h1>
-  <p>Welcome to my free online games!</p>
-</body>
-</html>
+diff --git a/index.html b/index.html
+index a1fcf91180f6eda4a0b406a91c56d422f3774e70..243c004922908bd7ef6c64464fbff8dea2541022 100644
+--- a/index.html
++++ b/index.html
+@@ -1,11 +1,108 @@
+-<!DOCTYPE html>
+-<html>
+-<head>
+-  <meta charset="UTF-8">
+-  <title>My Game Hub</title>
+-</head>
+-<body>
+-  <h1>🎮 My Game Hub</h1>
+-  <p>Welcome to my free online games!</p>
+-</body>
++<!doctype html>
++<html lang="zh-Hant">
++  <head>
++    <meta charset="UTF-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <title>Free Web Games Hub | 免費網頁遊戲集合</title>
++    <meta
++      name="description"
++      content="免費網頁遊戲集合網站範例，提供首頁、分類、遊戲詳情、政策頁與廣告版位規劃。"
++    />
++    <link rel="stylesheet" href="styles.css" />
++  </head>
++  <body>
++    <header class="site-header">
++      <div class="container nav-row">
++        <a class="brand" href="#">Free Web Games Hub</a>
++        <nav>
++          <a href="#home">首頁</a>
++          <a href="#categories">分類</a>
++          <a href="#featured">熱門遊戲</a>
++          <a href="#policy">政策頁</a>
++        </nav>
++      </div>
++    </header>
++
++    <main>
++      <section id="home" class="hero container">
++        <h1>先上線，再優化：你的遊戲廣告站 MVP 架構</h1>
++        <p>
++          這個頁面示範可以直接上線的基礎架構：首頁內容區、分類入口、遊戲詳情模板與 Google AdSense
++          版位預留。
++        </p>
++        <div class="ad-slot">Ad Slot（首頁 Hero 下方，建議 728x90）</div>
++      </section>
++
++      <section id="categories" class="container section">
++        <h2>遊戲分類</h2>
++        <div class="card-grid">
++          <article class="card">
++            <h3>益智 Puzzle</h3>
++            <p>SEO 友善分類頁，支援分頁與標籤。</p>
++            <button data-category="puzzle">查看分類頁模板</button>
++          </article>
++          <article class="card">
++            <h3>動作 Action</h3>
++            <p>放置高留存遊戲，搭配中段廣告。</p>
++            <button data-category="action">查看分類頁模板</button>
++          </article>
++          <article class="card">
++            <h3>多人 Multiplayer</h3>
++            <p>適合建立內鏈，提升站內停留時間。</p>
++            <button data-category="multiplayer">查看分類頁模板</button>
++          </article>
++        </div>
++      </section>
++
++      <section id="featured" class="container section">
++        <h2>熱門遊戲（詳情頁模板）</h2>
++        <article class="game-layout">
++          <div>
++            <h3>Sky Jump Adventure</h3>
++            <p class="meta">分類：Action · 標籤：反應、闖關</p>
++            <div class="player-placeholder">Game iframe area（16:9）</div>
++            <h4>操作方式</h4>
++            <ul>
++              <li>← → 移動角色</li>
++              <li>Space 跳躍</li>
++              <li>R 重新開始</li>
++            </ul>
++            <p>
++              詳情頁要有足夠文字內容（簡介、攻略、常見問題），避免只有 iframe 導致搜尋引擎可索引內容不足。
++            </p>
++          </div>
++          <aside>
++            <div class="ad-slot">Ad Slot（遊戲區下方，建議 300x250）</div>
++            <div class="ad-slot">Ad Slot（推薦區中段，建議原生廣告）</div>
++            <div class="panel">
++              <h4>相關遊戲</h4>
++              <ul>
++                <li>Neon Runner</li>
++                <li>Cube Dash</li>
++                <li>Space Drift</li>
++              </ul>
++            </div>
++          </aside>
++        </article>
++      </section>
++
++      <section id="policy" class="container section">
++        <h2>網站政策頁（AdSense 審核必備）</h2>
++        <div class="policy-links">
++          <a href="#">Privacy Policy</a>
++          <a href="#">Terms of Service</a>
++          <a href="#">Cookie Policy</a>
++          <a href="#">Contact</a>
++        </div>
++      </section>
++    </main>
++
++    <footer class="site-footer">
++      <div class="container">
++        <p>© 2026 Free Web Games Hub. All rights reserved.</p>
++      </div>
++    </footer>
++
++    <script src="script.js"></script>
++  </body>
+ </html>
