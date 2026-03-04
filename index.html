@@ -28,24 +28,32 @@
           {
             "@type": "ListItem",
             "position": 1,
-            "name": "一鍵渡劫 One-Key Tribulation",
+            "name": "雷劫試煉",
             "url": "https://jimmy4955.github.io/free-web-games/game/one-key-tribulation/",
-            "description": "短秒挑戰，按住蓄力並閃避天雷的極簡動作小遊戲。"
+            "description": "短秒挑戰，專注走位閃避天雷。"
           }
         ]
       }
     </script>
   </head>
-  <body>
+  <body id="top">
+    <div class="top-strip">
+      <div class="container top-strip-inner">
+        <nav class="top-bar" aria-label="主頁功能列">
+          <a class="icon-button" href="./index.html" aria-label="返回主頁面">
+            <img src="./assets/icon_main-menu.png" alt="" />
+          </a>
+        </nav>
+      </div>
+    </div>
+
     <header class="site-header">
       <div class="container hero-layout">
         <section class="hero-copy" aria-label="網站主視覺">
-          <h1>Free Web Games Hub</h1>
-          <p class="hero-tagline">免安裝 • 即點即玩 • 支援手機/桌機</p>
-          <p class="hero-subtitle">
-            探索免費網頁遊戲，專為手機 &amp; 桌機支援設計。所有作品都能免安裝即玩，打開頁面就能開始挑戰。
-          </p>
-          <a class="cta-button" href="#game-list">▶ 立即玩遊戲</a>
+          <h1>免費小遊戲｜Free Web Games Hub</h1>
+          <p class="hero-tagline">免下載・各種好玩小遊戲即開即玩</p>
+          <p class="hero-subtitle">免費網頁小遊戲平台，所有遊戲免下載、即開即玩。</p>
+          <a class="cta-button" href="#game-list">立即玩遊戲</a>
         </section>
         <div class="hero-tech-pattern" aria-hidden="true"></div>
       </div>
@@ -54,40 +62,29 @@
     <main class="container">
       <section class="card intro-card" aria-labelledby="site-intro-title">
         <h2 id="site-intro-title">網站介紹</h2>
-        <p>
-          這裡收錄極簡科技感的免費網頁遊戲，主打快節奏、低門檻。每款遊戲都針對手機 &amp; 桌機支援調整操作，免安裝即玩。
-        </p>
-      </section>
-
-      <section class="card" aria-labelledby="genre-title">
-        <h2 id="genre-title">遊戲類型</h2>
-        <ul>
-          <li>解謎 Puzzle</li>
-          <li>動作 Action</li>
-          <li>休閒 Casual</li>
-        </ul>
+        <p>免費網頁小遊戲平台，所有遊戲免下載、即開即玩。</p>
       </section>
 
       <section class="card" id="game-list" aria-labelledby="game-list-title">
-        <h2 id="game-list-title">已上線遊戲</h2>
+        <h2 id="game-list-title">免費遊戲</h2>
         <div class="game-grid">
-          <article class="game-card">
-            <h3>⚡ 一鍵渡劫 One-Key Tribulation</h3>
-            <p>短秒挑戰 • 按住蓄力 • 閃避天雷</p>
-            <a class="play-button" href="./game/one-key-tribulation/">Play Now</a>
+          <article class="game-card game-card-media">
+            <a class="game-link" href="./game/one-key-tribulation/" aria-label="進入雷劫試煉">
+              <img
+                class="game-thumb"
+                src="./assets/game-icon_trial%20of%20thunder.png"
+                alt="雷劫試煉遊戲圖示"
+              />
+              <h3>雷劫試煉</h3>
+            </a>
           </article>
         </div>
-      </section>
-
-      <section class="card" aria-labelledby="ad-title">
-        <h2 id="ad-title">廣告預留區</h2>
-        <div class="ad-slot">Ad Slot（可後續接 AdSense）</div>
       </section>
     </main>
 
     <footer class="site-footer">
       <div class="container">
-        <small>© 2026 Free Web Games Hub</small>
+        <small>© 2026 Tu Free Games</small>
       </div>
     </footer>
 

@@ -33,9 +33,56 @@ body {
   margin: 0 auto;
 }
 
+.top-strip {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(8, 10, 23, 0.92);
+  border-bottom: 1px solid rgba(126, 153, 255, 0.24);
+  backdrop-filter: blur(8px);
+}
+
+.top-strip-inner {
+  overflow-x: auto;
+}
+
 .site-header {
-  padding: 3.5rem 0 2rem;
+  padding: 2.2rem 0 2rem;
   color: var(--hero-text);
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 58px;
+  width: max-content;
+  padding: 0.35rem 0;
+}
+
+.icon-button {
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  line-height: 0;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.icon-button img {
+  width: clamp(168px, 26vw, 280px);
+  height: auto;
+  display: block;
+  pointer-events: none;
+}
+
+.icon-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
 }
 
 .hero-layout {
@@ -183,6 +230,28 @@ ul {
 .game-card:hover {
   transform: scale(1.03);
   box-shadow: 0 14px 28px rgba(42, 76, 168, 0.16);
+}
+
+.game-card-media {
+  text-align: center;
+}
+
+.game-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.game-thumb {
+  width: min(220px, 75vw);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #d8e4ff;
+  box-shadow: 0 8px 18px rgba(42, 76, 168, 0.12);
 }
 
 .play-button {
