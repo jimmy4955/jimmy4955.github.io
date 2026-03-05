@@ -127,6 +127,14 @@ canvas {
   max-width: 36ch;
 }
 
+.rematch-ad {
+  width: min(430px, 92%);
+}
+
+.rematch-ad .adsbygoogle {
+  min-height: 100px;
+}
+
 button {
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: linear-gradient(135deg, #4f7bff, #6b5dff);

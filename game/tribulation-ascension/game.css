@@ -306,6 +306,15 @@ button {
   flex-wrap: wrap;
 }
 
+.rematch-ad {
+  width: min(520px, 94%);
+  margin: 12px auto 4px;
+}
+
+.rematch-ad .adsbygoogle {
+  min-height: 110px;
+}
+
 .buff-grid {
   margin-top: 14px;
   display: grid;

@@ -207,11 +207,15 @@ const buffGrid = document.getElementById('buffGrid');
 const gameOverPanel = document.getElementById('gameOverPanel');
 const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
+const rematchAdWrapEl = document.getElementById('rematchAdWrap');
 
 const finalScoreEl = document.getElementById('finalScore');
 const finalStageEl = document.getElementById('finalStage');
 const finalRealmEl = document.getElementById('finalRealm');
 const finalBestEl = document.getElementById('finalBest');
+
+let hasFinishedAtLeastOnce = false;
+let rematchAdLoaded = false;
 
 let state = 'menu';
 let w = 0;
@@ -755,6 +759,22 @@ function resetRound() {
   refreshDerivedStats();
   recomputeScore();
   updateHud();
+}
+
+function maybeShowRematchAd() {
+  if (!rematchAdWrapEl || !hasFinishedAtLeastOnce) {
+    return;
+  }
+
+  rematchAdWrapEl.hidden = false;
+  if (!rematchAdLoaded) {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      rematchAdLoaded = true;
+    } catch (_err) {
+      // Ignore ad-blocker/runtime errors to avoid interrupting gameplay.
+    }
+  }
 }
 
 function calcBoltsByStage(stage) {
@@ -1328,6 +1348,9 @@ function onBuffPickClick(ev) {
 
 function startGame() {
   resetRound();
+  if (rematchAdWrapEl) {
+    rematchAdWrapEl.hidden = true;
+  }
   playBgm();
   state = 'playing';
   overlay.style.display = 'none';
@@ -1365,6 +1388,8 @@ function endGame() {
   startPanel.hidden = true;
   buffPickPanel.hidden = true;
   gameOverPanel.hidden = false;
+  hasFinishedAtLeastOnce = true;
+  maybeShowRematchAd();
   updateWaveBanner();
 }
 

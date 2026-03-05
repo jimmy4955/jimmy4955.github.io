@@ -18,6 +18,10 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlayTitle');
 const overlayDesc = document.getElementById('overlayDesc');
 const startBtn = document.getElementById('startBtn');
+const rematchAdWrap = document.getElementById('rematchAdWrap');
+
+let hasFinishedAtLeastOnce = false;
+let rematchAdLoaded = false;
 
 const state = {
   running: false,
@@ -76,6 +80,22 @@ function hideOverlay() {
   overlay.hidden = true;
 }
 
+function maybeShowRematchAd() {
+  if (!rematchAdWrap || !hasFinishedAtLeastOnce) {
+    return;
+  }
+
+  rematchAdWrap.hidden = false;
+  if (!rematchAdLoaded) {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+      rematchAdLoaded = true;
+    } catch (_err) {
+      // Ignore ad-blocker/runtime errors to keep the game playable.
+    }
+  }
+}
+
 function handleGameOver() {
   state.running = false;
   if (state.score > state.best) {
@@ -84,6 +104,8 @@ function handleGameOver() {
   }
   updateHud();
   showOverlay('遊戲結束', `本局分數：${state.score}，再來一場！`, '再來一次');
+  hasFinishedAtLeastOnce = true;
+  maybeShowRematchAd();
 }
 
 function setDirection(x, y) {
@@ -199,6 +221,9 @@ function loop(ts) {
 function startGame() {
   resetGame();
   state.running = true;
+  if (rematchAdWrap) {
+    rematchAdWrap.hidden = true;
+  }
   hideOverlay();
 }
 
