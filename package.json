@@ -1,0 +1,24 @@
+{
+  "name": "free-web-games",
+  "version": "1.0.0",
+  "description": "Free Web Games Hub static site",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:protect": "javascript-obfuscator ./game/tribulation-ascension/game.js --output ./dist/protected-game.js --compact true --control-flow-flattening true --dead-code-injection true --debug-protection true --disable-console-output true --string-array true --string-array-encoding base64"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jimmy4955/free-web-games.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jimmy4955/free-web-games/issues"
+  },
+  "homepage": "https://github.com/jimmy4955/free-web-games#readme",
+  "devDependencies": {
+    "javascript-obfuscator": "^5.3.0"
+  }
+}
