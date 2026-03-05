@@ -3,8 +3,8 @@
 const MODES = {
   lightning: {
     id: 'lightning',
-    label: '⚡ 閃電模式',
-    note: '[小地圖] 高速挑戰',
+    label: '⚡小地圖',
+    note: '高速挑戰-速度9',
     grid: 14,
     baseSpeed: 9,
     maxSpeed: 17,
@@ -12,8 +12,8 @@ const MODES = {
   },
   classic: {
     id: 'classic',
-    label: '🎯 經典模式',
-    note: '[經典圖] 標準玩法',
+    label: '🎯 經典圖',
+    note: '標準玩法-速度7',
     grid: 20,
     baseSpeed: 7,
     maxSpeed: 15,
@@ -22,7 +22,7 @@ const MODES = {
   earth: {
     id: 'earth',
     label: '🌍 大地圖',
-    note: '[大地圖] 生存模式',
+    note: '新手練習-速度6',
     grid: 32,
     baseSpeed: 6,
     maxSpeed: 13,
@@ -380,7 +380,7 @@ function onModeClick(ev) {
   setMode(btn.dataset.mode);
 
   if (!state.running) {
-    showOverlay('貪食蛇', '開始前請先選擇地圖模式，再按「開始遊戲」。', '開始遊戲');
+    showOverlay('🍎 貪食蛇', '開始前請先選擇地圖模式，再按「開始遊戲」。', '開始遊戲');
   }
 }
 
@@ -541,7 +541,7 @@ function init() {
   updateHud();
   resetGame();
   setPrelaunchActive(true);
-  showOverlay('貪食蛇', '開始前請先選擇地圖模式，再按「開始遊戲」。', '開始遊戲');
+  showOverlay('🍎 貪食蛇', '開始前請先選擇地圖模式，再按「開始遊戲」。', '開始遊戲');
 
   startBtn.addEventListener('click', requestStartGame);
   if (modePicker) {
@@ -557,3 +557,4 @@ function init() {
 }
 
 init();
+

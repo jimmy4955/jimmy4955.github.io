@@ -41,7 +41,7 @@
 
       <section class="card game-stage" aria-label="遊戲畫面">
         <div class="hud">
-          <div>模式：<span id="modeName">🎯 經典模式</span></div>
+          <div>模式：<span id="modeName">🎯 經典圖</span></div>
           <div>分數：<span id="score">0</span></div>
           <div>本模式最高：<span id="best">0</span></div>
           <div>速度：<span id="speed">7</span></div>
@@ -54,15 +54,15 @@
         <div class="canvas-wrap prelaunch" id="gameViewport">
           <canvas id="game" width="640" height="640" aria-label="貪食蛇遊戲"></canvas>
           <div class="overlay" id="overlay">
-            <h1 id="overlayTitle">貪食蛇</h1>
+            <h1 id="overlayTitle">🍎 貪食蛇</h1>
             <p id="overlayDesc">開始前請先選擇地圖模式，再按「開始遊戲」。</p>
 
             <div class="mode-picker" id="modePicker" role="group" aria-label="地圖模式選擇">
-              <button type="button" class="mode-btn" data-mode="lightning">⚡ 閃電模式</button>
-              <button type="button" class="mode-btn is-active" data-mode="classic">🎯 經典模式</button>
+              <button type="button" class="mode-btn" data-mode="lightning">⚡小地圖</button>
+              <button type="button" class="mode-btn is-active" data-mode="classic">🎯 經典圖</button>
               <button type="button" class="mode-btn" data-mode="earth">🌍 大地圖</button>
             </div>
-            <p class="mode-note" id="modeNote">[經典圖] 標準玩法</p>
+            <p class="mode-note" id="modeNote">標準玩法-速度7</p>
 
             <button id="startBtn" type="button">開始遊戲</button>
           </div>
@@ -70,7 +70,7 @@
       </section>
 
       <section class="card game-info" aria-labelledby="game-info-title">
-        <h2 id="game-info-title">貪食蛇</h2>
+        <h2 id="game-info-title">🍎 貪食蛇</h2>
         <p>吃到食物就會加分並變長，撞到牆壁或自己的身體就結束。</p>
         <p>操作：W / A / S / D 或 ↑ / ← / ↓ / →。</p>
       </section>
@@ -101,3 +101,4 @@
     <script src="./game.js"></script>
   </body>
 </html>
+
