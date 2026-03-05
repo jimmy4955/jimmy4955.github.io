@@ -126,15 +126,7 @@ canvas {
   margin: 0;
   max-width: 36ch;
 }
-
-.rematch-ad {
-  width: min(430px, 92%);
-}
-
-.rematch-ad .adsbygoogle {
-  min-height: 100px;
-}
-
+`r`n
 button {
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: linear-gradient(135deg, #4f7bff, #6b5dff);
@@ -171,4 +163,39 @@ button {
   }
 }
 
+
+
+.ad-break-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(3, 8, 18, 0.68);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.ad-break-panel {
+  width: min(560px, 94vw);
+  background: #e7edf6;
+  border: 1px solid #c9d5e6;
+  border-radius: 12px;
+  padding: 14px;
+  color: #0f172a;
+  text-align: center;
+}
+
+.ad-break-panel h3 {
+  margin: 0 0 10px;
+  font-size: clamp(18px, 2.4vw, 24px);
+}
+
+.ad-break-panel .adsbygoogle {
+  min-height: 140px;
+  margin: 0 auto 10px;
+}
+
+.ad-break-modal[hidden] {
+  display: none !important;
+}
 

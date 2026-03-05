@@ -18,10 +18,11 @@ const overlay = document.getElementById('overlay');
 const overlayTitle = document.getElementById('overlayTitle');
 const overlayDesc = document.getElementById('overlayDesc');
 const startBtn = document.getElementById('startBtn');
-const rematchAdWrap = document.getElementById('rematchAdWrap');
+const adBreakModal = document.getElementById('adBreakModal');
+const adBreakContinueBtn = document.getElementById('adBreakContinueBtn');
 
-let hasFinishedAtLeastOnce = false;
-let rematchAdLoaded = false;
+let completedRuns = 0;
+let adBreakLoaded = false;
 
 const state = {
   running: false,
@@ -80,16 +81,23 @@ function hideOverlay() {
   overlay.hidden = true;
 }
 
-function maybeShowRematchAd() {
-  if (!rematchAdWrap || !hasFinishedAtLeastOnce) {
+function hideAdBreakModal() {
+  if (!adBreakModal) {
+    return;
+  }
+  adBreakModal.hidden = true;
+}
+
+function showAdBreakModal() {
+  if (!adBreakModal) {
     return;
   }
 
-  rematchAdWrap.hidden = false;
-  if (!rematchAdLoaded) {
+  adBreakModal.hidden = false;
+  if (!adBreakLoaded) {
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
-      rematchAdLoaded = true;
+      adBreakLoaded = true;
     } catch (_err) {
       // Ignore ad-blocker/runtime errors to keep the game playable.
     }
@@ -104,8 +112,10 @@ function handleGameOver() {
   }
   updateHud();
   showOverlay('遊戲結束', `本局分數：${state.score}，再來一場！`, '再來一次');
-  hasFinishedAtLeastOnce = true;
-  maybeShowRematchAd();
+  completedRuns += 1;
+  if (completedRuns % 3 === 0) {
+    showAdBreakModal();
+  }
 }
 
 function setDirection(x, y) {
@@ -221,9 +231,7 @@ function loop(ts) {
 function startGame() {
   resetGame();
   state.running = true;
-  if (rematchAdWrap) {
-    rematchAdWrap.hidden = true;
-  }
+  hideAdBreakModal();
   hideOverlay();
 }
 
@@ -233,10 +241,17 @@ function init() {
   showOverlay('貪食蛇', '按下「開始遊戲」後，使用 WASD 或方向鍵控制蛇移動。', '開始遊戲');
 
   startBtn.addEventListener('click', startGame);
+  if (adBreakContinueBtn) {
+    adBreakContinueBtn.addEventListener('click', hideAdBreakModal);
+  }
   window.addEventListener('keydown', onKeyDown, { passive: false });
 
   requestAnimationFrame(loop);
 }
 
 init();
+
+
+
+
 

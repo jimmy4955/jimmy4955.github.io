@@ -207,15 +207,16 @@ const buffGrid = document.getElementById('buffGrid');
 const gameOverPanel = document.getElementById('gameOverPanel');
 const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
-const rematchAdWrapEl = document.getElementById('rematchAdWrap');
+const adBreakModalEl = document.getElementById('adBreakModal');
+const adBreakContinueBtn = document.getElementById('adBreakContinueBtn');
 
 const finalScoreEl = document.getElementById('finalScore');
 const finalStageEl = document.getElementById('finalStage');
 const finalRealmEl = document.getElementById('finalRealm');
 const finalBestEl = document.getElementById('finalBest');
 
-let hasFinishedAtLeastOnce = false;
-let rematchAdLoaded = false;
+let completedRuns = 0;
+let adBreakLoaded = false;
 
 let state = 'menu';
 let w = 0;
@@ -761,16 +762,23 @@ function resetRound() {
   updateHud();
 }
 
-function maybeShowRematchAd() {
-  if (!rematchAdWrapEl || !hasFinishedAtLeastOnce) {
+function hideAdBreakModal() {
+  if (!adBreakModalEl) {
+    return;
+  }
+  adBreakModalEl.hidden = true;
+}
+
+function showAdBreakModal() {
+  if (!adBreakModalEl) {
     return;
   }
 
-  rematchAdWrapEl.hidden = false;
-  if (!rematchAdLoaded) {
+  adBreakModalEl.hidden = false;
+  if (!adBreakLoaded) {
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
-      rematchAdLoaded = true;
+      adBreakLoaded = true;
     } catch (_err) {
       // Ignore ad-blocker/runtime errors to avoid interrupting gameplay.
     }
@@ -1348,9 +1356,7 @@ function onBuffPickClick(ev) {
 
 function startGame() {
   resetRound();
-  if (rematchAdWrapEl) {
-    rematchAdWrapEl.hidden = true;
-  }
+  hideAdBreakModal();
   playBgm();
   state = 'playing';
   overlay.style.display = 'none';
@@ -1388,8 +1394,10 @@ function endGame() {
   startPanel.hidden = true;
   buffPickPanel.hidden = true;
   gameOverPanel.hidden = false;
-  hasFinishedAtLeastOnce = true;
-  maybeShowRematchAd();
+  completedRuns += 1;
+  if (completedRuns % 3 === 0) {
+    showAdBreakModal();
+  }
   updateWaveBanner();
 }
 
@@ -1768,6 +1776,9 @@ function bindEvents() {
   startBtn.addEventListener('click', startGame);
   restartBtn.addEventListener('click', startGame);
   buffGrid.addEventListener('click', onBuffPickClick);
+  if (adBreakContinueBtn) {
+    adBreakContinueBtn.addEventListener('click', hideAdBreakModal);
+  }
 }
 
 async function loadRealmConfig() {
@@ -1799,3 +1810,11 @@ async function init() {
 }
 
 init();
+
+
+
+
+
+
+
+
