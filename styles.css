@@ -215,16 +215,16 @@ ul {
 
 .game-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
-  justify-content: center;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.9rem;
+  align-items: start;
 }
 
 .game-card {
-  width: min(540px, 100%);
+  width: 100%;
   border: 1px solid #d8e4ff;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 0.7rem 0.7rem 0.55rem;
   background: linear-gradient(180deg, #eaf1fa, #dde7f4);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -244,16 +244,25 @@ ul {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.35rem;
+}
+
+.game-card h3 {
+  margin: 0;
+  line-height: 1.2;
 }
 
 .game-thumb {
-  width: min(220px, 75vw);
+  width: 100%;
+  max-width: 140px;
   aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 12px;
-  border: 1px solid #d8e4ff;
-  box-shadow: 0 8px 18px rgba(42, 76, 168, 0.12);
+  border: none;
+  box-shadow: none;
+  margin: 0 auto;
+  transform: scale(1.14);
+  transform-origin: center;
 }
 
 .game-thumb-placeholder {
@@ -294,6 +303,18 @@ ul {
   color: #d5e2ff;
 }
 
+@media (max-width: 1080px) {
+  .game-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  .game-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 760px) {
   .site-header {
     padding-top: 2.6rem;
@@ -305,6 +326,10 @@ ul {
 
   .hero-tech-pattern {
     height: 130px;
+  }
+
+  .game-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
