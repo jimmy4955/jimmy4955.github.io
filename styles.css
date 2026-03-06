@@ -303,9 +303,6 @@ ul {
   color: #d5e2ff;
 }
 
-.site-footer .adsbygoogle {
-  margin: 0 0 0.9rem;
-}
 
 @media (max-width: 1080px) {
   .game-grid {
@@ -336,4 +333,6 @@ ul {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
 

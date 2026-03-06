@@ -85,7 +85,23 @@ const KICK_TESTS = [
 ];
 
 const BOOT_AD_SESSION_KEY = 'tfg_tetris_boot_ad_seen';
-const AD_EVERY_RUNS = 5;
+
+const AUDIO_CONFIG = {
+  storageMutedKey: 'tetris_audio_muted',
+  bgmPath: './audio/bgm-tetris.ogg',
+  sfxDiePath: './audio/sfx-tetris-die.ogg',
+  sfxLandingPath: './audio/sfx-tetris-landing.ogg',
+  sfxClearPath: './audio/sfx-tetris-cancellation.ogg',
+  sfxRotatePath: './audio/sfx-tetris-rotation.ogg',
+  bgmVolume: 0.45,
+  sfxBaseVolume: 0.60,
+  landingVolume: 1.0,
+  clearVolumeByLines: [0, 0.56, 0.68, 0.8, 0.9],
+  resumeDelayMs: 3000
+};
+
+const LANDING_SHAKE_SEC = 0.1;
+const LANDING_SHAKE_AMPLITUDE = 2.4;
 
 // =========================
 // DOM / Canvas
@@ -104,11 +120,9 @@ const overlayEl = document.getElementById('overlay');
 const overlayTitleEl = document.getElementById('overlayTitle');
 const overlayTextEl = document.getElementById('overlayText');
 const startBtn = document.getElementById('startBtn');
+const audioToggleBtn = document.getElementById('audioToggleBtn');
 
 const viewportEl = document.getElementById('gameViewport');
-const adBreakModal = document.getElementById('adBreakModal');
-const adBreakTitle = document.getElementById('adBreakTitle');
-const adBreakContinueBtn = document.getElementById('adBreakContinueBtn');
 
 // =========================
 // State
@@ -128,17 +142,25 @@ const state = {
   lineClearDuration: 0.25,
   clearCount: 0,
   shakeTimer: 0,
+  landingSfxQueued: false,
   scorePopTimer: 0,
   showGhost: false
 };
 
 let lastTime = 0;
 let hasBootAdShown = false;
-let adBreakLoaded = false;
-let adBreakCountdownTimer = null;
-let adBreakAfterClose = null;
-let completedRuns = 0;
 let overlayAction = null;
+
+const audio = {
+  bgm: null,
+  die: null,
+  landing: null,
+  clear: null,
+  rotate: null,
+  resumeTimer: null
+};
+
+let audioMuted = false;
 
 // =========================
 // Utilities
@@ -170,108 +192,164 @@ function markBootAdSeenInSession() {
   }
 }
 
-function clearAdBreakTimer() {
-  if (adBreakCountdownTimer) {
-    clearInterval(adBreakCountdownTimer);
-    adBreakCountdownTimer = null;
+
+
+
+function clearAudioResumeTimer() {
+  if (audio.resumeTimer) {
+    clearTimeout(audio.resumeTimer);
+    audio.resumeTimer = null;
   }
 }
 
-function hideAdBreakModal() {
-  clearAdBreakTimer();
-  if (adBreakModal) {
-    adBreakModal.hidden = true;
-  }
-
-  const cb = adBreakAfterClose;
-  adBreakAfterClose = null;
-  if (typeof cb === 'function') {
-    cb();
+function safeLoadAudioMuted() {
+  try {
+    return localStorage.getItem(AUDIO_CONFIG.storageMutedKey) === '1';
+  } catch (_err) {
+    return false;
   }
 }
 
-function showAdBreakModal(options = {}) {
-  if (!adBreakModal) {
-    if (typeof options.onClose === 'function') {
-      options.onClose();
-    }
+function safeSaveAudioMuted() {
+  try {
+    localStorage.setItem(AUDIO_CONFIG.storageMutedKey, audioMuted ? '1' : '0');
+  } catch (_err) {
+    // ignore storage errors
+  }
+}
+
+function updateAudioToggleUi() {
+  if (!audioToggleBtn) {
     return;
   }
+  audioToggleBtn.textContent = audioMuted ? '\uD83D\uDD07' : '\uD83D\uDD0A';
+  audioToggleBtn.setAttribute('aria-label', audioMuted ? 'Enable audio' : 'Mute audio');
+  audioToggleBtn.title = audioMuted ? 'Audio muted' : 'Audio on';
+}
 
-  const {
-    title = '遊戲加載中',
-    countdownSec = 0,
-    autoCloseOnCountdown = false,
-    onClose = null
-  } = options;
-
-  adBreakAfterClose = onClose;
-  adBreakModal.hidden = false;
-
-  if (adBreakTitle) {
-    adBreakTitle.textContent = title;
-  }
-
-  if (!adBreakLoaded) {
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-      adBreakLoaded = true;
-    } catch (_err) {
-      // ignore adblock/runtime errors
+function applyAudioMuteState() {
+  if (audio.bgm) {
+    audio.bgm.volume = audioMuted ? 0 : AUDIO_CONFIG.bgmVolume;
+    if (audioMuted) {
+      audio.bgm.pause();
     }
   }
 
-  clearAdBreakTimer();
-  if (!adBreakContinueBtn) {
+  const vol = audioMuted ? 0 : AUDIO_CONFIG.sfxBaseVolume;
+  if (audio.die) {
+    audio.die.volume = vol;
+  }
+  if (audio.landing) {
+    audio.landing.volume = vol;
+  }
+  if (audio.clear) {
+    audio.clear.volume = vol;
+  }
+  if (audio.rotate) {
+    audio.rotate.volume = vol;
+  }
+
+  updateAudioToggleUi();
+}
+
+function initAudio() {
+  audio.bgm = new Audio(AUDIO_CONFIG.bgmPath);
+  audio.bgm.loop = true;
+  audio.bgm.preload = 'auto';
+
+  audio.die = new Audio(AUDIO_CONFIG.sfxDiePath);
+  audio.die.preload = 'auto';
+
+  audio.landing = new Audio(AUDIO_CONFIG.sfxLandingPath);
+  audio.landing.preload = 'auto';
+
+  audio.clear = new Audio(AUDIO_CONFIG.sfxClearPath);
+  audio.clear.preload = 'auto';
+
+  audio.rotate = new Audio(AUDIO_CONFIG.sfxRotatePath);
+  audio.rotate.preload = 'auto';
+
+  applyAudioMuteState();
+}
+
+function playBgm() {
+  if (audioMuted || !audio.bgm) {
+    return;
+  }
+  const p = audio.bgm.play();
+  if (p && typeof p.catch === 'function') {
+    p.catch(() => {});
+  }
+}
+
+function playClipOnce(clip, volumeOverride = null) {
+  if (audioMuted || !clip) {
+    return;
+  }
+  if (typeof volumeOverride === 'number') {
+    clip.volume = Math.max(0, Math.min(1, volumeOverride));
+  }
+  clip.currentTime = 0;
+  const p = clip.play();
+  if (p && typeof p.catch === 'function') {
+    p.catch(() => {});
+  }
+}
+
+function playRotateSfx() {
+  playClipOnce(audio.rotate, AUDIO_CONFIG.sfxBaseVolume);
+}
+
+function playLandingSfx() {
+  if (audioMuted || !audio.landing) {
     return;
   }
 
-  if (countdownSec > 0) {
-    let remain = countdownSec;
-    adBreakContinueBtn.disabled = true;
-    adBreakContinueBtn.textContent = autoCloseOnCountdown
-      ? `${remain}秒後自動關閉`
-      : `${remain}秒後可關閉`;
+  // Use a fresh audio node for each lock to avoid missed playback.
+  const clip = audio.landing.cloneNode();
+  clip.volume = AUDIO_CONFIG.landingVolume;
+  const p = clip.play();
+  if (p && typeof p.catch === 'function') {
+    p.catch(() => {});
+  }
+}
 
-    adBreakCountdownTimer = setInterval(() => {
-      remain -= 1;
-      if (remain <= 0) {
-        clearAdBreakTimer();
-        if (autoCloseOnCountdown) {
-          hideAdBreakModal();
-        } else {
-          adBreakContinueBtn.disabled = false;
-          adBreakContinueBtn.textContent = '關閉並開始';
-        }
-      } else {
-        adBreakContinueBtn.textContent = autoCloseOnCountdown
-          ? `${remain}秒後自動關閉`
-          : `${remain}秒後可關閉`;
-      }
-    }, 1000);
-  } else {
-    adBreakContinueBtn.disabled = false;
-    adBreakContinueBtn.textContent = '繼續遊戲';
+function playClearSfx(lines) {
+  const idx = Math.max(1, Math.min(4, lines || 1));
+  const vol = AUDIO_CONFIG.clearVolumeByLines[idx] || AUDIO_CONFIG.sfxBaseVolume;
+  playClipOnce(audio.clear, vol);
+}
+
+function playOutcomeSfx(kind) {
+  clearAudioResumeTimer();
+  if (audio.bgm) {
+    audio.bgm.pause();
+  }
+
+  if (kind === 'die') {
+    playClipOnce(audio.die, AUDIO_CONFIG.sfxBaseVolume);
+  }
+
+  audio.resumeTimer = setTimeout(() => {
+    if (!audioMuted) {
+      playBgm();
+    }
+  }, AUDIO_CONFIG.resumeDelayMs);
+}
+
+function toggleAudioMute() {
+  audioMuted = !audioMuted;
+  safeSaveAudioMuted();
+  applyAudioMuteState();
+  if (!audioMuted && state.mode === 'playing') {
+    playBgm();
   }
 }
 
 function runFirstBootAd() {
-  if (hasBootAdShown || hasSeenBootAdInSession()) {
-    hasBootAdShown = true;
-    return;
-  }
-
   hasBootAdShown = true;
   markBootAdSeenInSession();
-
-  showAdBreakModal({
-    title: '遊戲加載中',
-    countdownSec: 5,
-    autoCloseOnCountdown: true,
-    onClose: () => {
-      setPrelaunchActive(true);
-    }
-  });
+  setPrelaunchActive(true);
 }
 
 function resetBoard() {
@@ -312,6 +390,7 @@ function showOverlay(title, text, buttonLabel = '', action = null) {
     overlayTextEl.textContent = text;
   }
   overlayAction = action;
+
 
   if (startBtn) {
     if (buttonLabel) {
@@ -393,11 +472,8 @@ function spawnPiece() {
 
   if (collides(state.current)) {
     state.mode = 'gameover';
-    completedRuns += 1;
+    playOutcomeSfx('die');
     showOverlay('遊戲結束', '', '重新開始', () => startGame());
-    if (completedRuns % AD_EVERY_RUNS === 0) {
-      showAdBreakModal({ title: '稍作休息，下一局準備開始' });
-    }
   }
 }
 
@@ -430,6 +506,7 @@ function tryRotate(dir) {
 
     if (!collides(test)) {
       state.current = test;
+      playRotateSfx();
       return true;
     }
   }
@@ -455,7 +532,8 @@ function lockPiece() {
     }
   }
 
-  state.shakeTimer = 0.07;
+  state.shakeTimer = LANDING_SHAKE_SEC;
+  state.landingSfxQueued = true;
   handleLineClearOrSpawn();
 }
 
@@ -494,6 +572,7 @@ function finalizeLineClear() {
 
   state.board = remain;
 
+  playClearSfx(state.clearCount);
   state.lines += state.clearCount;
   const gained = SCORE_TABLE[state.clearCount] * (state.level + 1);
   state.score += gained;
@@ -525,6 +604,7 @@ function resetGame() {
   state.lineClearTimer = 0;
   state.clearCount = 0;
   state.shakeTimer = 0;
+  state.landingSfxQueued = false;
   state.scorePopTimer = 0;
 
   updateHud();
@@ -532,11 +612,12 @@ function resetGame() {
 }
 
 function startGame() {
+  clearAudioResumeTimer();
   resetGame();
   state.mode = 'playing';
   hideOverlay();
-  hideAdBreakModal();
   setPrelaunchActive(false);
+  playBgm();
 }
 
 function togglePause() {
@@ -550,7 +631,11 @@ function togglePause() {
 }
 
 function toTitle() {
+  clearAudioResumeTimer();
   state.mode = 'title';
+  if (audio.bgm) {
+    audio.bgm.pause();
+  }
   setPrelaunchActive(true);
   showOverlay('🧱 俄羅斯方塊', '', '開始遊戲', () => startGame());
 }
@@ -622,8 +707,8 @@ ghostToggleEl.addEventListener('change', () => {
   state.showGhost = ghostToggleEl.checked;
 });
 
-if (adBreakContinueBtn) {
-  adBreakContinueBtn.addEventListener('click', hideAdBreakModal);
+if (audioToggleBtn) {
+  audioToggleBtn.addEventListener('click', toggleAudioMute);
 }
 
 if (startBtn) {
@@ -638,6 +723,11 @@ if (startBtn) {
 // Update Loop
 // =========================
 function stepGame(dt) {
+  if (state.landingSfxQueued && state.shakeTimer > 0) {
+    playLandingSfx();
+    state.landingSfxQueued = false;
+  }
+
   if (state.scorePopTimer > 0) {
     state.scorePopTimer -= dt;
     if (state.scorePopTimer <= 0) {
@@ -859,7 +949,7 @@ function render() {
   drawBoardBackground();
 
   if (state.shakeTimer > 0) {
-    const shake = Math.sin((state.shakeTimer / 0.07) * Math.PI * 10) * 1.5;
+    const shake = Math.sin((state.shakeTimer / LANDING_SHAKE_SEC) * Math.PI * 10) * LANDING_SHAKE_AMPLITUDE;
     boardCtx.save();
     boardCtx.translate(shake, 0);
     drawPlacedBlocks();
@@ -881,6 +971,8 @@ function render() {
 // Init
 // =========================
 function init() {
+  audioMuted = safeLoadAudioMuted();
+  initAudio();
   resizeCanvases();
   window.addEventListener('resize', resizeCanvases);
   updateHud();
@@ -891,6 +983,15 @@ function init() {
 }
 
 init();
+
+
+
+
+
+
+
+
+
 
 
 

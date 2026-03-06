@@ -58,7 +58,8 @@ const config = {
 const storageKeys = {
   bestScore: 'oktt_best_score',
   bestStage: 'oktt_best_stage',
-  bestRealm: 'oktt_best_realm'
+  bestRealm: 'oktt_best_realm',
+  audioMuted: 'oktt_audio_muted'
 };
 
 const smallRealmConfig = {
@@ -207,10 +208,7 @@ const buffGrid = document.getElementById('buffGrid');
 const gameOverPanel = document.getElementById('gameOverPanel');
 const startBtn = document.getElementById('startBtn');
 const restartBtn = document.getElementById('restartBtn');
-const adBreakModalEl = document.getElementById('adBreakModal');
-const adBreakContinueBtn = document.getElementById('adBreakContinueBtn');
-const adBreakTitleEl = document.getElementById('adBreakTitle');
-const adBreakHintEl = document.getElementById('adBreakHint');
+const audioToggleBtn = document.getElementById('audioToggleBtn');
 
 const finalScoreEl = document.getElementById('finalScore');
 const finalStageEl = document.getElementById('finalStage');
@@ -218,11 +216,7 @@ const finalRealmEl = document.getElementById('finalRealm');
 const finalBestEl = document.getElementById('finalBest');
 const BOOT_AD_SESSION_KEY = 'tfg_tribulation_boot_ad_seen';
 
-let completedRuns = 0;
-let adBreakLoaded = false;
 let hasBootAdShown = false;
-let adBreakCountdownTimer = null;
-let adBreakAfterClose = null;
 
 let state = 'menu';
 let w = 0;
@@ -649,6 +643,69 @@ function initBackground() {
   bgImage.image.src = config.bgPath;
 }
 
+function safeLoadAudioMuted() {
+  try {
+    return localStorage.getItem(storageKeys.audioMuted) === '1';
+  } catch (_err) {
+    return false;
+  }
+}
+
+function safeSaveAudioMuted() {
+  try {
+    localStorage.setItem(storageKeys.audioMuted, game.audioMuted ? '1' : '0');
+  } catch (_err) {
+    // ignore storage issues
+  }
+}
+
+function updateAudioToggleUi() {
+  if (!audioToggleBtn) {
+    return;
+  }
+  const muted = game.audioMuted;
+  audioToggleBtn.textContent = muted ? '\uD83D\uDD07' : '\uD83D\uDD0A';
+  audioToggleBtn.setAttribute('aria-label', muted ? 'Enable audio' : 'Mute audio');
+  audioToggleBtn.title = muted ? 'Audio muted' : 'Audio on';
+}
+
+function applyAudioMuteState() {
+  const muted = game.audioMuted;
+
+  if (audio.bgm) {
+    audio.bgm.volume = muted ? 0 : clamp(config.bgmVolume, 0, 1);
+    if (muted) {
+      audio.bgm.pause();
+    } else if (state === 'playing') {
+      const p = audio.bgm.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {});
+      }
+    }
+  }
+
+  if (audio.breakSfx) {
+    audio.breakSfx.volume = muted ? 0 : clamp(config.sfxVolume, 0, 1);
+  }
+  if (audio.hitSfx) {
+    audio.hitSfx.volume = muted ? 0 : clamp(config.sfxVolume, 0, 1);
+  }
+  if (audio.thunderPool && audio.thunderPool.length) {
+    const thunderVol = muted ? 0 : clamp(config.thunderVolume, 0, 1);
+    for (const clip of audio.thunderPool) {
+      clip.volume = thunderVol;
+    }
+  }
+
+  updateAudioToggleUi();
+}
+
+function toggleAudioMute() {
+  game.audioMuted = !game.audioMuted;
+  safeSaveAudioMuted();
+  applyAudioMuteState();
+}
+
 function initAudio() {
   audio.bgm = new Audio(config.bgmPath);
   audio.bgm.loop = true;
@@ -672,10 +729,12 @@ function initAudio() {
     thunderClip.preload = 'auto';
     audio.thunderPool.push(thunderClip);
   }
+
+  applyAudioMuteState();
 }
 
 function playBgm() {
-  if (!audio.bgm) {
+  if (!audio.bgm || game.audioMuted) {
     return;
   }
   const p = audio.bgm.play();
@@ -685,6 +744,10 @@ function playBgm() {
 }
 
 function playSfx(kind) {
+  if (game.audioMuted) {
+    return;
+  }
+
   let clip = null;
   if (kind === 'break') {
     clip = audio.breakSfx;
@@ -768,92 +831,8 @@ function resetRound() {
   updateHud();
 }
 
-function clearAdBreakTimer() {
-  if (adBreakCountdownTimer) {
-    clearInterval(adBreakCountdownTimer);
-    adBreakCountdownTimer = null;
-  }
-}
 
-function hideAdBreakModal() {
-  clearAdBreakTimer();
-  if (adBreakModalEl) {
-    adBreakModalEl.hidden = true;
-  }
 
-  const cb = adBreakAfterClose;
-  adBreakAfterClose = null;
-  if (typeof cb === 'function') {
-    cb();
-  }
-}
-
-function showAdBreakModal(options = {}) {
-  if (!adBreakModalEl) {
-    if (typeof options.onClose === 'function') {
-      options.onClose();
-    }
-    return;
-  }
-
-  const {
-    title = '稍作休息，下一局準備開始',
-    hint = '',
-    countdownSec = 0,
-    autoCloseOnCountdown = false,
-    onClose = null
-  } = options;
-
-  adBreakAfterClose = onClose;
-  adBreakModalEl.hidden = false;
-  if (adBreakTitleEl) {
-    adBreakTitleEl.textContent = title;
-  }
-  if (adBreakHintEl) {
-    adBreakHintEl.textContent = hint;
-  }
-
-  if (!adBreakLoaded) {
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-      adBreakLoaded = true;
-    } catch (_err) {
-      // Ignore ad-blocker/runtime errors to avoid interrupting gameplay.
-    }
-  }
-
-  clearAdBreakTimer();
-  if (!adBreakContinueBtn) {
-    return;
-  }
-
-  if (countdownSec > 0) {
-    let remain = countdownSec;
-    adBreakContinueBtn.disabled = true;
-    adBreakContinueBtn.textContent = autoCloseOnCountdown
-      ? `${remain}秒後自動關閉`
-      : `${remain} 秒後可關閉`;
-    adBreakCountdownTimer = setInterval(() => {
-      remain -= 1;
-      if (remain <= 0) {
-        clearAdBreakTimer();
-        if (autoCloseOnCountdown) {
-          hideAdBreakModal();
-        } else {
-          adBreakContinueBtn.disabled = false;
-          adBreakContinueBtn.textContent = '關閉並開始';
-        }
-      } else {
-        adBreakContinueBtn.textContent = autoCloseOnCountdown
-          ? `${remain}秒後自動關閉`
-          : `${remain} 秒後可關閉`;
-      }
-    }, 1000);
-  } else {
-    adBreakContinueBtn.disabled = false;
-    adBreakContinueBtn.textContent = '繼續遊戲';
-  }
-}
 
 function calcBoltsByStage(stage) {
   let bolts = Math.min(10, 1 + Math.floor(stage / 4));
@@ -1452,35 +1431,13 @@ function markBootAdSeenInSession() {
   }
 }
 function runFirstBootAd() {
-  if (hasBootAdShown || hasSeenBootAdInSession()) {
-    hasBootAdShown = true;
-    return;
-  }
   hasBootAdShown = true;
   markBootAdSeenInSession();
-  if (startBtn) {
-    startBtn.disabled = true;
-    startBtn.textContent = '開始加載...';
-  }
-
-  showAdBreakModal({
-    title: '遊戲加載中',
-    hint: '',
-    countdownSec: 5,
-    autoCloseOnCountdown: true,
-    onClose: () => {
-      if (startBtn) {
-        startBtn.disabled = false;
-        startBtn.textContent = '開始遊戲';
-      }
-      setPrelaunchActive(true);
-    }
-  });
+  setPrelaunchActive(true);
 }
 
 function startGame() {
   resetRound();
-  hideAdBreakModal();
   playBgm();
   state = 'playing';
   overlay.style.display = 'none';
@@ -1518,10 +1475,6 @@ function endGame() {
   startPanel.hidden = true;
   buffPickPanel.hidden = true;
   gameOverPanel.hidden = false;
-  completedRuns += 1;
-  if (completedRuns % 5 === 0) {
-    showAdBreakModal();
-  }
   updateWaveBanner();
 }
 
@@ -1900,8 +1853,8 @@ function bindEvents() {
   startBtn.addEventListener('click', requestStartGame);
   restartBtn.addEventListener('click', requestStartGame);
   buffGrid.addEventListener('click', onBuffPickClick);
-  if (adBreakContinueBtn) {
-    adBreakContinueBtn.addEventListener('click', hideAdBreakModal);
+  if (audioToggleBtn) {
+    audioToggleBtn.addEventListener('click', toggleAudioMute);
   }
 }
 
@@ -1915,12 +1868,14 @@ async function init() {
   game.bestScore = best.score;
   game.bestStage = best.stage;
   game.bestRealmText = best.realmText;
+  game.audioMuted = safeLoadAudioMuted();
 
   await loadRealmConfig();
 
   initBackground();
   initSprite();
   initAudio();
+  applyAudioMuteState();
   resize();
   resetRound();
   setPrelaunchActive(true);
@@ -1936,6 +1891,11 @@ async function init() {
 }
 
 init();
+
+
+
+
+
 
 
 

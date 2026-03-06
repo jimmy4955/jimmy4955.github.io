@@ -8,12 +8,7 @@
       name="description"
       content="渡劫修仙是一款免費網頁小遊戲，左右移動閃避落雷、突破境界並搭配天賦與道途，挑戰更高分數。"
     />
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8908217023822331"
-      crossorigin="anonymous"
-    ></script>
-    <link rel="stylesheet" href="./game.css" />
+<link rel="stylesheet" href="./game.css" />
   </head>
   <body>
     <div class="top-strip">
@@ -27,24 +22,10 @@
     </div>
 
     <main class="page-wrap game-page">
-      <aside class="card side-ad" aria-label="左側廣告">
-        <!-- Multimedia advertising -->
-        <ins
-          class="adsbygoogle"
-          style="display: block"
-          data-ad-client="ca-pub-8908217023822331"
-          data-ad-slot="7095251020"
-          data-ad-format="auto"
-          data-full-width-responsive="true"
-        ></ins>
-        <script>
-          (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-      </aside>
-
-      <section class="card game-stage" aria-label="遊戲畫面">
+<section class="card game-stage" aria-label="遊戲畫面">
         <div class="game-viewport" id="gameViewport">
           <canvas id="game" aria-label="渡劫修仙遊戲畫面"></canvas>
+          <button id="audioToggleBtn" class="audio-toggle" type="button" aria-label="關閉音樂與音效" title="音效開啟">🔊</button>
           <div class="wave-banner" id="waveBanner" aria-live="polite">
             <div class="wave-status" id="waveStatus">渡劫開始</div>
             <div class="wave-stage" id="waveStage">渡劫次數：0</div>
@@ -150,22 +131,6 @@
       </section>
     </main>
 
-    <div class="ad-break-modal" id="adBreakModal" hidden>
-      <div class="ad-break-panel" role="dialog" aria-modal="true" aria-label="廣告視窗">
-        <h3 id="adBreakTitle">遊戲加載中</h3>
-        <!-- Multimedia advertising -->
-        <ins
-          class="adsbygoogle"
-          style="display:block"
-          data-ad-client="ca-pub-8908217023822331"
-          data-ad-slot="7095251020"
-          data-ad-format="auto"
-          data-full-width-responsive="true"
-        ></ins>
-        <button id="adBreakContinueBtn" type="button">5秒後自動關閉</button>
-      </div>
-    </div>
-
     <footer class="site-footer">
       <div class="page-wrap">
         <small>© 2026 Tu Free Games</small>
@@ -175,6 +140,9 @@
     <script src="./game.js"></script>
   </body>
 </html>
+
+
+
 
 
 

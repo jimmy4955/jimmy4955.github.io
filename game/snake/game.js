@@ -33,7 +33,16 @@ const MODES = {
 const config = {
   defaultMode: 'classic',
   storageBestPrefix: 'snake_best_',
-  adEveryRuns: 5
+  storageAudioMutedKey: 'snake_audio_muted',
+  audio: {
+    bgmPath: './audio/bgm-snake.ogg',
+    sfxDiePath: './audio/sfx-sanke-die.ogg',
+    sfxWinPath: './audio/sfx-sanke-win.ogg',
+    sfxEatPath: './audio/sfx-snake-eat.ogg',
+    bgmVolume: 0.42,
+    sfxVolume: 0.8,
+    resumeDelayMs: 3000
+  }
 };
 
 const canvas = document.getElementById('game');
@@ -54,18 +63,22 @@ const overlayDesc = document.getElementById('overlayDesc');
 const startBtn = document.getElementById('startBtn');
 const modePicker = document.getElementById('modePicker');
 const modeNoteEl = document.getElementById('modeNote');
+const audioToggleBtn = document.getElementById('audioToggleBtn');
 
-const adBreakModal = document.getElementById('adBreakModal');
-const adBreakTitle = document.getElementById('adBreakTitle');
-const adBreakContinueBtn = document.getElementById('adBreakContinueBtn');
 const BOOT_AD_SESSION_KEY = 'tfg_snake_boot_ad_seen';
 
-let completedRuns = 0;
-let adBreakLoaded = false;
 let hasBootAdShown = false;
-let adBreakCountdownTimer = null;
-let adBreakAfterClose = null;
 let elapsedSec = 0;
+
+const audio = {
+  bgm: null,
+  die: null,
+  win: null,
+  eat: null,
+  resumeTimer: null
+};
+
+let audioMuted = false;
 
 const state = {
   running: false,
@@ -83,6 +96,129 @@ const state = {
   snake: [],
   food: { x: 0, y: 0 }
 };
+
+
+function clearAudioResumeTimer() {
+  if (audio.resumeTimer) {
+    clearTimeout(audio.resumeTimer);
+    audio.resumeTimer = null;
+  }
+}
+
+function safeLoadAudioMuted() {
+  try {
+    return localStorage.getItem(config.storageAudioMutedKey) === '1';
+  } catch (_err) {
+    return false;
+  }
+}
+
+function safeSaveAudioMuted() {
+  try {
+    localStorage.setItem(config.storageAudioMutedKey, audioMuted ? '1' : '0');
+  } catch (_err) {
+    // ignore storage error
+  }
+}
+
+function updateAudioToggleUi() {
+  if (!audioToggleBtn) {
+    return;
+  }
+  audioToggleBtn.textContent = audioMuted ? '\uD83D\uDD07' : '\uD83D\uDD0A';
+  audioToggleBtn.setAttribute('aria-label', audioMuted ? 'Enable audio' : 'Mute audio');
+  audioToggleBtn.title = audioMuted ? 'Audio muted' : 'Audio on';
+}
+
+function applyAudioMuteState() {
+  if (audio.bgm) {
+    audio.bgm.volume = audioMuted ? 0 : config.audio.bgmVolume;
+    if (audioMuted) {
+      audio.bgm.pause();
+    }
+  }
+
+  if (audio.die) {
+    audio.die.volume = audioMuted ? 0 : config.audio.sfxVolume;
+  }
+  if (audio.win) {
+    audio.win.volume = audioMuted ? 0 : config.audio.sfxVolume;
+  }
+  if (audio.eat) {
+    audio.eat.volume = audioMuted ? 0 : config.audio.sfxVolume;
+  }
+
+  updateAudioToggleUi();
+}
+
+function toggleAudioMute() {
+  audioMuted = !audioMuted;
+  safeSaveAudioMuted();
+  applyAudioMuteState();
+  if (!audioMuted && state.running) {
+    playBgm();
+  }
+}
+
+function initAudio() {
+  audio.bgm = new Audio(config.audio.bgmPath);
+  audio.bgm.loop = true;
+  audio.bgm.preload = 'auto';
+
+  audio.die = new Audio(config.audio.sfxDiePath);
+  audio.die.preload = 'auto';
+
+  audio.win = new Audio(config.audio.sfxWinPath);
+  audio.win.preload = 'auto';
+
+  audio.eat = new Audio(config.audio.sfxEatPath);
+  audio.eat.preload = 'auto';
+
+  applyAudioMuteState();
+}
+
+function playBgm() {
+  if (audioMuted || !audio.bgm) {
+    return;
+  }
+  const p = audio.bgm.play();
+  if (p && typeof p.catch === 'function') {
+    p.catch(() => {});
+  }
+}
+
+function playEatSfx() {
+  if (audioMuted || !audio.eat) {
+    return;
+  }
+  audio.eat.currentTime = 0;
+  const p = audio.eat.play();
+  if (p && typeof p.catch === 'function') {
+    p.catch(() => {});
+  }
+}
+
+function playOutcomeSfx(kind) {
+  clearAudioResumeTimer();
+  if (audio.bgm) {
+    audio.bgm.pause();
+  }
+
+  const clip = kind === 'win' ? audio.win : audio.die;
+  if (!audioMuted && clip) {
+    clip.currentTime = 0;
+    const p = clip.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => {});
+    }
+  }
+
+  audio.resumeTimer = setTimeout(() => {
+    if (!audioMuted) {
+      playBgm();
+    }
+  }, config.audio.resumeDelayMs);
+}
 
 function setPrelaunchActive(active) {
   if (!viewportEl) {
@@ -116,11 +252,18 @@ function roundRectPath(x, y, w, h, r) {
 
 function placeFood() {
   const grid = currentMode().grid;
+  const capacity = grid * grid;
+  if (state.snake.length >= capacity) {
+    return false;
+  }
+
   let cell = null;
   do {
     cell = { x: randInt(grid), y: randInt(grid) };
   } while (state.snake.some((s) => s.x === cell.x && s.y === cell.y));
+
   state.food = cell;
+  return true;
 }
 
 function resetGame() {
@@ -187,95 +330,16 @@ function hideOverlay() {
   overlay.hidden = true;
 }
 
-function clearAdBreakTimer() {
-  if (adBreakCountdownTimer) {
-    clearInterval(adBreakCountdownTimer);
-    adBreakCountdownTimer = null;
-  }
-}
 
-function hideAdBreakModal() {
-  clearAdBreakTimer();
-  if (adBreakModal) {
-    adBreakModal.hidden = true;
-  }
 
-  const cb = adBreakAfterClose;
-  adBreakAfterClose = null;
-  if (typeof cb === 'function') {
-    cb();
-  }
-}
-
-function showAdBreakModal(options = {}) {
-  if (!adBreakModal) {
-    if (typeof options.onClose === 'function') {
-      options.onClose();
-    }
-    return;
-  }
-
-  const {
-    title = '遊戲加載中',
-    countdownSec = 0,
-    autoCloseOnCountdown = false,
-    onClose = null
-  } = options;
-
-  adBreakAfterClose = onClose;
-  adBreakModal.hidden = false;
-  if (adBreakTitle) {
-    adBreakTitle.textContent = title;
-  }
-
-  if (!adBreakLoaded) {
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-      adBreakLoaded = true;
-    } catch (_err) {
-      // Ignore ad-blocker/runtime errors to keep the game playable.
-    }
-  }
-
-  clearAdBreakTimer();
-  if (!adBreakContinueBtn) {
-    return;
-  }
-
-  if (countdownSec > 0) {
-    let remain = countdownSec;
-    adBreakContinueBtn.disabled = true;
-    adBreakContinueBtn.textContent = autoCloseOnCountdown
-      ? `${remain}秒後自動關閉`
-      : `${remain}秒後可關閉`;
-    adBreakCountdownTimer = setInterval(() => {
-      remain -= 1;
-      if (remain <= 0) {
-        clearAdBreakTimer();
-        if (autoCloseOnCountdown) {
-          hideAdBreakModal();
-        } else {
-          adBreakContinueBtn.disabled = false;
-          adBreakContinueBtn.textContent = '關閉並開始';
-        }
-      } else {
-        adBreakContinueBtn.textContent = autoCloseOnCountdown
-          ? `${remain}秒後自動關閉`
-          : `${remain}秒後可關閉`;
-      }
-    }, 1000);
-  } else {
-    adBreakContinueBtn.disabled = false;
-    adBreakContinueBtn.textContent = '繼續遊戲';
-  }
-}
 
 function startGame() {
+  clearAudioResumeTimer();
   resetGame();
   state.running = true;
-  hideAdBreakModal();
   hideOverlay();
   setPrelaunchActive(false);
+  playBgm();
 }
 
 function requestStartGame() {
@@ -299,26 +363,9 @@ function markBootAdSeenInSession() {
 }
 
 function runFirstBootAd() {
-  if (hasBootAdShown || hasSeenBootAdInSession()) {
-    hasBootAdShown = true;
-    return;
-  }
   hasBootAdShown = true;
   markBootAdSeenInSession();
-
-  startBtn.disabled = true;
-  startBtn.textContent = '開始加載...';
-
-  showAdBreakModal({
-    title: '遊戲加載中',
-    countdownSec: 5,
-    autoCloseOnCountdown: true,
-    onClose: () => {
-      startBtn.disabled = false;
-      startBtn.textContent = '開始遊戲';
-      setPrelaunchActive(true);
-    }
-  });
+  setPrelaunchActive(true);
 }
 
 function persistBest(modeId, score) {
@@ -334,12 +381,22 @@ function handleGameOver() {
     persistBest(modeId, state.score);
   }
 
+  playOutcomeSfx('die');
   updateHud();
-  showOverlay('遊戲結束', `本局分數：${state.score}，可切換模式再挑戰。`, '再來一次');
-  completedRuns += 1;
-  if (completedRuns % config.adEveryRuns === 0) {
-    showAdBreakModal({ title: '稍作休息，下一局準備開始' });
+  showOverlay('\u904A\u6232\u7D50\u675F', `\u672C\u5C40\u5206\u6578\uFF1A${state.score}\uFF0C\u53EF\u5207\u63DB\u6A21\u5F0F\u518D\u6311\u6230\u3002`, '\u518D\u4F86\u4E00\u6B21');
+}
+
+function handleVictory() {
+  state.running = false;
+
+  const modeId = state.modeId;
+  if (state.score > (state.bestByMode[modeId] || 0)) {
+    persistBest(modeId, state.score);
   }
+
+  playOutcomeSfx('win');
+  updateHud();
+  showOverlay('\u73A9\u5BB6\u52DD\u5229', `\u4F60\u5403\u6EFF\u6574\u5F35\u5730\u5716\uFF01\u672C\u5C40\u5206\u6578\uFF1A${state.score}`, '\u518D\u4F86\u4E00\u6B21');
 }
 
 function setDirection(x, y) {
@@ -409,8 +466,13 @@ function step() {
   if (next.x === state.food.x && next.y === state.food.y) {
     state.score += 1;
     state.speed = Math.min(mode.maxSpeed, state.speed + mode.speedStep);
-    placeFood();
+    playEatSfx();
+    const spawned = placeFood();
     updateHud();
+
+    if (!spawned) {
+      handleVictory();
+    }
   } else {
     state.snake.pop();
   }
@@ -538,17 +600,19 @@ function loop(ts) {
 }
 
 function init() {
+  audioMuted = safeLoadAudioMuted();
+  initAudio();
   updateHud();
   resetGame();
   setPrelaunchActive(true);
   showOverlay('🍎 貪食蛇', '開始前請先選擇地圖模式，再按「開始遊戲」。', '開始遊戲');
 
   startBtn.addEventListener('click', requestStartGame);
+  if (audioToggleBtn) {
+    audioToggleBtn.addEventListener('click', toggleAudioMute);
+  }
   if (modePicker) {
     modePicker.addEventListener('click', onModeClick);
-  }
-  if (adBreakContinueBtn) {
-    adBreakContinueBtn.addEventListener('click', hideAdBreakModal);
   }
   window.addEventListener('keydown', onKeyDown, { passive: false });
 
@@ -557,4 +621,8 @@ function init() {
 }
 
 init();
+
+
+
+
 

@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>貪食蛇｜Free Web Games Hub</title>
     <meta name="description" content="經典貪食蛇網頁版，支援鍵盤 WASD 與方向鍵操作。" />
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8908217023822331"
-      crossorigin="anonymous"
-    ></script>
-    <link rel="stylesheet" href="./game.css" />
+<link rel="stylesheet" href="./game.css" />
   </head>
   <body>
     <div class="top-strip">
@@ -24,22 +19,7 @@
     </div>
 
     <main class="page-wrap game-page">
-      <aside class="card side-ad" aria-label="左側廣告">
-        <!-- Multimedia advertising -->
-        <ins
-          class="adsbygoogle"
-          style="display: block"
-          data-ad-client="ca-pub-8908217023822331"
-          data-ad-slot="7095251020"
-          data-ad-format="auto"
-          data-full-width-responsive="true"
-        ></ins>
-        <script>
-          (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-      </aside>
-
-      <section class="card game-stage" aria-label="遊戲畫面">
+<section class="card game-stage" aria-label="遊戲畫面">
         <div class="hud">
           <div>模式：<span id="modeName">🎯 經典圖</span></div>
           <div>分數：<span id="score">0</span></div>
@@ -53,6 +33,7 @@
 
         <div class="canvas-wrap prelaunch" id="gameViewport">
           <canvas id="game" width="640" height="640" aria-label="貪食蛇遊戲"></canvas>
+          <button id="audioToggleBtn" class="audio-toggle" type="button" aria-label="Toggle audio" title="Audio on">SND</button>
           <div class="overlay" id="overlay">
             <h1 id="overlayTitle">🍎 貪食蛇</h1>
             <p id="overlayDesc">開始前請先選擇「地圖模式」，再按「開始遊戲」。</p>
@@ -135,22 +116,6 @@
       </section>
     </main>
 
-    <div class="ad-break-modal" id="adBreakModal" hidden>
-      <div class="ad-break-panel" role="dialog" aria-modal="true" aria-label="廣告視窗">
-        <h3 id="adBreakTitle">遊戲加載中</h3>
-        <!-- Multimedia advertising -->
-        <ins
-          class="adsbygoogle"
-          style="display:block"
-          data-ad-client="ca-pub-8908217023822331"
-          data-ad-slot="7095251020"
-          data-ad-format="auto"
-          data-full-width-responsive="true"
-        ></ins>
-        <button id="adBreakContinueBtn" type="button">5秒後自動關閉</button>
-      </div>
-    </div>
-
     <footer class="site-footer">
       <div class="page-wrap">
         <small>© 2026 Tu Free Games</small>
@@ -160,3 +125,4 @@
     <script src="./game.js"></script>
   </body>
 </html>
+

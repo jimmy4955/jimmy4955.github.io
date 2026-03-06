@@ -52,25 +52,17 @@ body {
 
 .game-page {
   display: grid;
-  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
   padding: 1rem 0 2rem;
 }
 
-.side-ad {
-  position: sticky;
-  top: 76px;
-  padding: 0.7rem;
-}
 
-.side-ad .adsbygoogle {
-  min-height: 600px;
-}
 
 .game-stage,
 .game-info {
-  grid-column: 2;
+  grid-column: 1;
 }
 
 .card {
@@ -130,6 +122,32 @@ body {
   display: block;
   border-radius: 8px;
   background: #0b1324;
+}
+
+
+.audio-toggle {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 6;
+  width: 42px;
+  height: 42px;
+  margin: 0;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(188, 210, 255, 0.62);
+  background: rgba(13, 24, 51, 0.82);
+  color: #e8f1ff;
+  font-size: 20px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.audio-toggle:hover {
+  background: rgba(22, 39, 78, 0.92);
 }
 
 .overlay {
@@ -244,53 +262,11 @@ body {
   font-size: 0.85rem;
 }
 
-.ad-break-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  background: rgba(3, 8, 18, 0.68);
-  display: grid;
-  place-items: center;
-  padding: 16px;
-}
 
-.ad-break-panel {
-  width: min(760px, 96vw);
-  min-height: min(560px, 86vh);
-  background: #e7edf6;
-  border: 1px solid #c9d5e6;
-  border-radius: 14px;
-  padding: 22px;
-  color: #0f172a;
-  text-align: center;
-  display: grid;
-  align-content: start;
-  gap: 12px;
-}
 
-.ad-break-panel h3 {
-  margin: 0;
-  font-size: clamp(24px, 3vw, 36px);
-}
 
-.ad-break-panel .adsbygoogle {
-  min-height: 220px;
-  margin: 0 auto;
-}
 
-#adBreakContinueBtn {
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: linear-gradient(135deg, #4f7bff, #6b5dff);
-  color: #fff;
-  border-radius: 8px;
-  font-weight: 700;
-  padding: 0.55rem 1rem;
-  cursor: pointer;
-}
 
-.ad-break-modal[hidden] {
-  display: none !important;
-}
 
 .game-info h2 {
   margin: 0 0 0.45rem;
@@ -310,19 +286,9 @@ body {
   .game-page {
     grid-template-columns: 1fr;
   }
-
-  .side-ad,
   .game-stage,
   .game-info {
     grid-column: 1;
-  }
-
-  .side-ad {
-    position: static;
-  }
-
-  .side-ad .adsbygoogle {
-    min-height: 250px;
   }
 
   .tetris-shell {
@@ -352,3 +318,6 @@ body {
   padding: 0.72rem 1.28rem;
   cursor: pointer;
 }
+
+
+
